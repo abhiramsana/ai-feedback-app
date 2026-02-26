@@ -1,29 +1,14 @@
-export default async function handler(req, res) {
-  const { feedback } = req.body;
+async function analyze() {
+  const feedback = document.getElementById("feedback").value;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("/api/analyze", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.OPENAI_KEY}`
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-          Analyze the feedback and return:
-          1. Sentiment (Positive, Negative, Neutral)
-          2. Key Points (bullet list)
-          3. Action Suggestions (bullet list)
-          `
-        },
-        { role: "user", content: feedback }
-      ]
-    })
+    body: JSON.stringify({ feedback })
   });
 
   const data = await response.json();
-  res.status(200).json({ result: data.choices[0].message.content });
+  document.getElementById("output").innerText = data.result;
 }
