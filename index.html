@@ -22,6 +22,7 @@
       padding: 10px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      margin-top: 10px;
     }
     button {
       background: #4f46e5;
@@ -30,7 +31,8 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 15px;
+      margin-right: 10px;
     }
     button:hover {
       background: #3730a3;
@@ -40,6 +42,7 @@
       padding: 15px;
       background: #f9fafb;
       border-radius: 8px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -50,6 +53,8 @@
     <p>Get sentiment, key insights, and improvement actions instantly.</p>
 
     <textarea id="feedback" rows="6" placeholder="Enter user feedback here..."></textarea>
+
+    <br>
     <button onclick="analyze()">Analyze Feedback</button>
     <button onclick="downloadPDF()">Download PDF</button>
 
@@ -60,39 +65,39 @@
 async function analyze() {
   const feedback = document.getElementById("feedback").value;
 
-  const response = await axios.post(
-    "https://api.openai.com/v1/chat/completions",
-    {
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-          Analyze the feedback and return:
-          1. Sentiment (Positive, Negative, Neutral)
-          2. Key Points (bullet list)
-          3. Action Suggestions (bullet list)
-          `
-        },
-        { role: "user", content: feedback }
-      ]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer YOUR_OPENAI_KEY"
-      }
-    }
-  );
+  if (!feedback) {
+    alert("Please enter feedback first.");
+    return;
+  }
 
-  const result = response.data.choices[0].message.content;
-  document.getElementById("output").innerText = result;
+  document.getElementById("output").innerText = "Analyzing...";
+
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ feedback })
+    });
+
+    const data = await response.json();
+
+    if (data.result) {
+      document.getElementById("output").innerText = data.result;
+    } else {
+      document.getElementById("output").innerText = "Error generating analysis.";
+    }
+
+  } catch (error) {
+    document.getElementById("output").innerText = "Server error. Please try again.";
+  }
 }
 
 function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const content = document.getElementById("output").innerText;
+  const content = document.getElementById("output").innerText || "No analysis available.";
   doc.text(content, 10, 10);
   doc.save("AI_Feedback_Report.pdf");
 }
