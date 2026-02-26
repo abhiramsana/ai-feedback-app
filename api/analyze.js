@@ -1,0 +1,62 @@
+module.exports = async function (req, res) {
+  try {
+    // Only allow POST
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    let body = req.body;
+
+    // If body comes as string, parse it
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+
+    const feedback = body?.feedback;
+
+    if (!feedback) {
+      return res.status(400).json({ error: "No feedback provided" });
+    }
+
+    const openaiResponse = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENAI_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "Analyze the feedback and return: Sentiment (Positive/Negative/Neutral), Key Points (bullet list), and Action Suggestions (bullet list)."
+            },
+            {
+              role: "user",
+              content: feedback
+            }
+          ]
+        })
+      }
+    );
+
+    const data = await openaiResponse.json();
+
+    // If OpenAI failed
+    if (!openaiResponse.ok) {
+      return res.status(500).json({ error: data });
+    }
+
+    return res.status(200).json({
+      result: data.choices[0].message.content
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message
+    });
+  }
+};
