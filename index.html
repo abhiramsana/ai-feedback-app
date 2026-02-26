@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Feedback Summarizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body style="font-family: Arial; padding: 40px;">
+  <h1>AI Feedback Summarizer</h1>
+
+  <textarea id="feedback" rows="8" cols="60"
+  placeholder="Enter feedback here"></textarea>
+  
+  <br><br>
+  <button onclick="summarize()">Summarize</button>
+
+  <h2 id="result"></h2>
+
+<script>
+async function summarize() {
+  const feedback = document.getElementById("feedback").value;
+
+  const response = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4o-mini",
+      messages: [
+        {role: "system", content: "Summarize feedback clearly."},
+        {role: "user", content: feedback}
+      ]
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer YOUR_OPENAI_KEY"
+      }
+    }
+  );
+
+  document.getElementById("result").innerText =
+    response.data.choices[0].message.content;
+}
+</script>
+
+</body>
+</html>
