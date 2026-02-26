@@ -47,8 +47,11 @@ module.exports = async function (req, res) {
 
     // If OpenAI failed
     if (!openaiResponse.ok) {
-      return res.status(500).json({ error: data });
-    }
+  return res.status(500).json({
+    error: "OpenAI Error",
+    details: data
+  });
+}
 
     return res.status(200).json({
       result: data.choices[0].message.content
