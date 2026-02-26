@@ -1,23 +1,64 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI Feedback Summarizer</title>
+  <title>AI Feedback Analyzer</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 40px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #4f46e5;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #3730a3;
+    }
+    .result-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+  </style>
 </head>
-<body style="font-family: Arial; padding: 40px;">
-  <h1>AI Feedback Summarizer</h1>
 
-  <textarea id="feedback" rows="8" cols="60"
-  placeholder="Enter feedback here"></textarea>
-  
-  <br><br>
-  <button onclick="summarize()">Summarize</button>
+<body>
+  <div class="container">
+    <h1>AI Feedback Analyzer</h1>
+    <p>Get sentiment, key insights, and improvement actions instantly.</p>
 
-  <h2 id="result"></h2>
+    <textarea id="feedback" rows="6" placeholder="Enter user feedback here..."></textarea>
+    <button onclick="analyze()">Analyze Feedback</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+
+    <div class="result-box" id="output"></div>
+  </div>
 
 <script>
-async function summarize() {
+async function analyze() {
   const feedback = document.getElementById("feedback").value;
 
   const response = await axios.post(
@@ -25,8 +66,16 @@ async function summarize() {
     {
       model: "gpt-4o-mini",
       messages: [
-        {role: "system", content: "Summarize feedback clearly."},
-        {role: "user", content: feedback}
+        {
+          role: "system",
+          content: `
+          Analyze the feedback and return:
+          1. Sentiment (Positive, Negative, Neutral)
+          2. Key Points (bullet list)
+          3. Action Suggestions (bullet list)
+          `
+        },
+        { role: "user", content: feedback }
       ]
     },
     {
@@ -37,8 +86,16 @@ async function summarize() {
     }
   );
 
-  document.getElementById("result").innerText =
-    response.data.choices[0].message.content;
+  const result = response.data.choices[0].message.content;
+  document.getElementById("output").innerText = result;
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const content = document.getElementById("output").innerText;
+  doc.text(content, 10, 10);
+  doc.save("AI_Feedback_Report.pdf");
 }
 </script>
 
